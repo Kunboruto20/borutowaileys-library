@@ -1,184 +1,174 @@
+> **Update (May 2025):**  
+> Pairing code issues have been fully resolved.  
+> The library now uses the latest WhatsApp Web protocol to ensure smooth and reliable authentication via pairing codes.
+@borutowaileys/library
 
-# @borutowaileys/library
+A sleek, high-performance library for building WhatsApp applications and bots.
 
-A powerful library for building WhatsApp applications and bots.
+GitHub Repository: https://github.com/gyovannyvpn123/borutowaileys-library.git
 
-## Features
 
-- Multi-device support
-- Message sending and receiving
-- Group management
-- Media handling
-- QR code authentication
-- Event-based messaging
-- Message history synchronization
-- Comprehensive API for all WhatsApp features
 
-## Installation
 
-```bash
+---
+
+🚀 Features
+
+Multi-Device Support: Connect across multiple sessions seamlessly.
+
+Robust Messaging: Send and receive text, stickers, and rich media.
+
+Group Management: Create, schedule actions, and manage permissions.
+
+Advanced Media Handling: Compress, resize, watermark, and OCR.
+
+Code-Free Authentication: QR-less pairing for headless environments.
+
+Event-Driven Architecture: React to incoming messages, connection updates, and more.
+
+State Synchronization: Keep message history in sync across devices.
+
+Webhook Integrations: Push events to external services.
+
+Built-In Rate Limiter: Stay within WhatsApp’s limits to avoid blocks.
+
+Cache with TTL: In-memory storage with persistence and automatic expiration.
+
+
+
+---
+
+📦 Installation
+
 npm install @borutowaileys/library
-```
-
-## Quick Start
-
-```javascript
-const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@borutowaileys/library');
-const { Boom } = require('@hapi/boom');
-
-// Simple example of how to use the library
-async function connectToWhatsApp() {
-    const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-    const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: true
-    });
-    
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update;
-        if(connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error instanceof Boom && 
-                lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut);
-                
-            if(shouldReconnect) {
-                connectToWhatsApp();
-            }
-        } else if(connection === 'open') {
-            console.log('Successfully connected to WhatsApp');
-        }
-    });
-    
-    sock.ev.on('creds.update', saveCreds);
-    
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        if(messages[0].key.fromMe) return;
-        
-        const message = messages[0];
-        console.log('Received message:', message.message);
-        
-        // Simple echo bot
-        await sock.sendMessage(message.key.remoteJid, {
-            text: 'You said: ' + message.message.conversation
-        });
-    });
-}
-
-connectToWhatsApp();
-```
 
 
-## Funcționalități Avansate
+---
 
-Biblioteca @borutowaileys/library include următoarele funcționalități avansate:
+🏁 Quick Start
 
-### Rate Limiting
+const {
+  createSocket,
+  DisconnectReason,
+  useAuthState
+} = require('@borutowaileys/library');
 
-Prevenirea blocării de către WhatsApp prin limitarea numărului de mesaje trimise:
+(async () => {
+  // Initialize authentication state
+  const { state, saveCreds } = await useAuthState('auth_credentials');
 
-```javascript
-const { makeEnhancedWASocket } = require('@borutowaileys/library');
+  const sock = createSocket({
+    auth: state,
+    printQRInTerminal: true
+  });
 
-const sock = makeEnhancedWASocket({
-  rateLimiter: {
-    maxRequests: 15,  // Numărul maxim de cereri
-    timeWindow: 60000 // Fereastra de timp (1 minut)
-  }
+  // Connection lifecycle
+  sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
+    if (connection === 'open') {
+      console.log('🔌 Connected successfully');
+    }
+    if (connection === 'close') {
+      const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
+      if (shouldReconnect) setTimeout(() => start(), 2000);
+    }
+  });
+
+  // Persist credentials
+  sock.ev.on('creds.update', saveCreds);
+
+  // Message handler
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    const msg = messages[0];
+    if (msg.key.fromMe) return;
+    console.log('📩 Received:', msg.message);
+
+    // Echo reply
+    await sock.sendMessage(msg.key.remoteJid, { text: `You said: ${msg.message.conversation}` });
+  });
+})();
+
+
+---
+
+🌟 Advanced Capabilities
+
+Rate Limiting
+
+Keep your bot safe from blocks by capping request rates.
+
+const { createEnhancedSocket } = require('@borutowaileys/library');
+
+const sock = createEnhancedSocket({
+  rateLimiter: { maxRequests: 15, timeWindow: 60000 }
 });
 
-// Trimitere mesaj cu rate limiting
 try {
-  await sock.sendWithRateLimit(jid, { text: 'Mesaj cu rate limiting' });
-} catch (error) {
-  console.log(error.message); // "Rate limit exceeded. Try again in X seconds."
+  await sock.sendWithRateLimit(jid, { text: 'This message respects rate limits' });
+} catch (err) {
+  console.error(err.message);
 }
-```
 
-### Procesare Imagini și OCR
+Image Processing & OCR
 
-Extragere text din imagini și procesare avansată:
+Extract text and manipulate media in one place.
 
-```javascript
-// Extragere text din imagine
+// Text extraction
 const text = await sock.extractTextFromImage(imageBuffer);
-console.log('Text extras:', text);
+console.log('Extracted text:', text);
 
-// Comprimare imagine
-const compressedImage = await sock.compressImage(imageBuffer, 80); // calitate 80%
+// Compress, resize, watermark
+const compressed = await sock.compressImage(imageBuffer, 80);
+const resized    = await sock.resizeImage(imageBuffer, 800, 600);
+const watermarked = await sock.addWatermark(imageBuffer, watermarkBuffer, { opacity: 0.5, x: 10, y: 10 });
 
-// Redimensionare imagine
-const resizedImage = await sock.resizeImage(imageBuffer, 800, 600);
+Group Administration
 
-// Adăugare watermark
-const watermarkedImage = await sock.addWatermark(imageBuffer, watermarkBuffer, {
-  opacity: 0.5,
-  x: 10,
-  y: 10
-});
-```
+Automate group creation, scheduling, and moderation.
 
-### Gestionare Avansată a Grupurilor
-
-Funcționalități extinse pentru administrarea grupurilor:
-
-```javascript
-// Creare grup cu opțiuni avansate
-const group = await sock.createGroupWithOptions('Numele Grupului', ['123456789@s.whatsapp.net'], {
-  description: 'Descriere grup',
-  picture: fs.readFileSync('icon.jpg'),
-  restrict: true // Grup anunț (doar admini pot scrie)
-});
-
-// Programare acțiuni pentru grup
-await sock.scheduleGroupAction(
-  groupId,
-  'message',            // Tipul acțiunii: message, title, description, remove, add, promote, demote
-  Date.now() + 3600000, // Timestamp pentru 1 oră în viitor
-  { message: { text: 'Mesaj programat' } }
+// Create advanced group
+const group = await sock.createGroupWithOptions(
+  'My Awesome Group',
+  ['123456789@s.whatsapp.net'],
+  { description: 'Group for enthusiasts', picture: fs.readFileSync('icon.jpg'), restrict: true }
 );
 
-// Obținere acțiuni programate
-const actions = sock.getScheduledGroupActions(groupId);
+// Schedule an action
+await sock.scheduleGroupAction(
+  group.id,
+  'message',
+  Date.now() + 3600000,
+  { message: { text: 'Scheduled announcement' } }
+);
 
-// Anulare acțiune programată
-sock.cancelScheduledGroupAction(actionId);
-```
+Webhook Integrations
 
-### Webhook-uri pentru Integrări
+Real-time events delivered to your services.
 
-Notificare servicii externe despre evenimente WhatsApp:
-
-```javascript
-// Configurare webhook
 sock.setupWebhook('https://example.com/webhook', ['message.received', 'message.sent']);
 
-// Trimitere mesaj fără notificare webhook
-await sock.sendMessage(jid, { text: 'Mesaj silențios' }, { silentWebhook: true });
+await sock.sendMessage(jid, { text: 'Silent message' }, { silentWebhook: true });
 
-// Eliminare webhook
 sock.removeWebhook('https://example.com/webhook');
-```
 
-### Cache Îmbunătățit
+Built-In Caching
 
-Stocare eficientă a datelor cu persistență și TTL:
+Fast in-memory store with TTL and persistence.
 
-```javascript
-// Stocare în cache
-sock.cacheSet('key', value, 3600); // TTL de 1 oră
-
-// Obținere din cache
-const value = sock.cacheGet('key');
-
-// Eliminare din cache
-sock.cacheDelete('key');
-
-// Golire cache
+sock.cacheSet('user:1234', userData, 3600); // 1 hour
+const data = sock.cacheGet('user:1234');
 sock.cacheClear();
-```
-## Documentation
 
-For detailed documentation on all the available functions and features, please refer to the docs folder.
 
-## License
+---
 
-MIT
+📖 Documentation
+
+Explore the full API, guides, and examples in the docs folder or online at https://borutowaileys.dev/docs
+
+
+---
+
+⚖️ License
+
+Released under the MIT License.
+
