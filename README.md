@@ -1,52 +1,39 @@
-> **Update (May 2025):**  
-> Pairing code issues have been fully resolved.  
-> The library now uses the latest WhatsApp Web protocol to ensure smooth and reliable authentication via pairing codes.
-@borutowaileys/library
+# @borutowaileys/library
 
-A sleek, high-performance library for building WhatsApp applications and bots.
+\## What's New
 
-GitHub Repository: https://github.com/gyovannyvpn123/borutowaileys-library.git
+\- \*\*May 2025:\*\* Pairing code issues fixed with full support for the latest WhatsApp Web protocol.A sleek, high-performance library for building WhatsApp applications and bots.
 
-
-
+**GitHub Repository:** [https://github.com/gyovannyvpn123/borutowaileys-library.git](https://github.com/gyovannyvpn123/borutowaileys-library.git)
 
 ---
 
-🚀 Features
+## 🚀 Features
 
-Multi-Device Support: Connect across multiple sessions seamlessly.
-
-Robust Messaging: Send and receive text, stickers, and rich media.
-
-Group Management: Create, schedule actions, and manage permissions.
-
-Advanced Media Handling: Compress, resize, watermark, and OCR.
-
-Code-Free Authentication: QR-less pairing for headless environments.
-
-Event-Driven Architecture: React to incoming messages, connection updates, and more.
-
-State Synchronization: Keep message history in sync across devices.
-
-Webhook Integrations: Push events to external services.
-
-Built-In Rate Limiter: Stay within WhatsApp’s limits to avoid blocks.
-
-Cache with TTL: In-memory storage with persistence and automatic expiration.
-
-
+* **Multi-Device Support**: Connect across multiple sessions seamlessly.
+* **Robust Messaging**: Send and receive text, stickers, and rich media.
+* **Group Management**: Create, schedule actions, and manage permissions.
+* **Advanced Media Handling**: Compress, resize, watermark, and OCR.
+* **Code-Free Authentication**: QR-less pairing for headless environments.
+* **Event-Driven Architecture**: React to incoming messages, connection updates, and more.
+* **State Synchronization**: Keep message history in sync across devices.
+* **Webhook Integrations**: Push events to external services.
+* **Built-In Rate Limiter**: Stay within WhatsApp’s limits to avoid blocks.
+* **Cache with TTL**: In-memory storage with persistence and automatic expiration.
 
 ---
 
-📦 Installation
+## 📦 Installation
 
+```bash
 npm install @borutowaileys/library
-
+```
 
 ---
 
-🏁 Quick Start
+## 🏁 Quick Start
 
+```javascript
 const {
   createSocket,
   DisconnectReason,
@@ -86,16 +73,17 @@ const {
     await sock.sendMessage(msg.key.remoteJid, { text: `You said: ${msg.message.conversation}` });
   });
 })();
-
+```
 
 ---
 
-🌟 Advanced Capabilities
+## 🌟 Advanced Capabilities
 
-Rate Limiting
+### Rate Limiting
 
 Keep your bot safe from blocks by capping request rates.
 
+```javascript
 const { createEnhancedSocket } = require('@borutowaileys/library');
 
 const sock = createEnhancedSocket({
@@ -107,11 +95,13 @@ try {
 } catch (err) {
   console.error(err.message);
 }
+```
 
-Image Processing & OCR
+### Image Processing & OCR
 
 Extract text and manipulate media in one place.
 
+```javascript
 // Text extraction
 const text = await sock.extractTextFromImage(imageBuffer);
 console.log('Extracted text:', text);
@@ -120,11 +110,13 @@ console.log('Extracted text:', text);
 const compressed = await sock.compressImage(imageBuffer, 80);
 const resized    = await sock.resizeImage(imageBuffer, 800, 600);
 const watermarked = await sock.addWatermark(imageBuffer, watermarkBuffer, { opacity: 0.5, x: 10, y: 10 });
+```
 
-Group Administration
+### Group Administration
 
 Automate group creation, scheduling, and moderation.
 
+```javascript
 // Create advanced group
 const group = await sock.createGroupWithOptions(
   'My Awesome Group',
@@ -139,36 +131,38 @@ await sock.scheduleGroupAction(
   Date.now() + 3600000,
   { message: { text: 'Scheduled announcement' } }
 );
+```
 
-Webhook Integrations
+### Webhook Integrations
 
 Real-time events delivered to your services.
 
+```javascript
 sock.setupWebhook('https://example.com/webhook', ['message.received', 'message.sent']);
 
 await sock.sendMessage(jid, { text: 'Silent message' }, { silentWebhook: true });
 
 sock.removeWebhook('https://example.com/webhook');
+```
 
-Built-In Caching
+### Built-In Caching
 
 Fast in-memory store with TTL and persistence.
 
+```javascript
 sock.cacheSet('user:1234', userData, 3600); // 1 hour
 const data = sock.cacheGet('user:1234');
 sock.cacheClear();
-
-
----
-
-📖 Documentation
-
-Explore the full API, guides, and examples in the docs folder or online at https://borutowaileys.dev/docs
-
+```
 
 ---
 
-⚖️ License
+## 📖 Documentation
+
+Explore the full API, guides, and examples in the [docs](./docs) folder or online at [https://borutowaileys.dev/docs](https://borutowaileys.dev/docs)
+
+---
+
+## ⚖️ License
 
 Released under the MIT License.
-
