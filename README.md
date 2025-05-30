@@ -2,7 +2,7 @@
 
 \## What's New
 
-\- \*\*May 2025:\*\* Pairing code issues fixed with full support for the latest WhatsApp Web protocol.A sleek, high-performance library for building WhatsApp applications and bots.
+\- \*\*May 2025:\*\* Pairing code issues fixed with full support for the latest WhatsApp Web protocol. UPDATED The last protocol used by whatsapp to ensure the best compatibility Have Fun
 
 **GitHub Repository:** [https://github.com/gyovannyvpn123/borutowaileys-library.git](https://github.com/gyovannyvpn123/borutowaileys-library.git)
 
