@@ -34,45 +34,70 @@ npm install @borutowaileys/library
 ## 🏁 Quick Start
 
 ```javascript
+// index.cjs
 const {
-  createSocket,
+  makeWASocket,
+  useMultiFileAuthState,
   DisconnectReason,
-  useAuthState
+  fetchLatestBaileysVersion,
+  delay
 } = require('@borutowaileys/library');
+const readline = require('readline');
 
-(async () => {
-  // Initialize authentication state
-  const { state, saveCreds } = await useAuthState('auth_credentials');
-
-  const sock = createSocket({
-    auth: state,
-    printQRInTerminal: true
-  });
-
-  // Connection lifecycle
-  sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
-    if (connection === 'open') {
-      console.log('🔌 Connected successfully');
-    }
+// Funcție pentru a afișa pairing code
+const waitForPairing = (sock) => {
+  sock.ev.on('connection.update', async ({ connection, qr, pairingCode, lastDisconnect }) => {
     if (connection === 'close') {
-      const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
-      if (shouldReconnect) setTimeout(() => start(), 2000);
+      const reason = lastDisconnect?.error?.output?.statusCode;
+      if (reason === DisconnectReason.loggedOut) {
+        console.error('⚠️ Deconectat! Reautentificare necesară.');
+        process.exit();
+      } else {
+        console.log('🔁 Reconectare...');
+        startBot(); // Recursiv
+      }
+    }
+
+    if (pairingCode) {
+      console.log('\n🔗 Pairing Code:\n');
+      console.log('\x1b[31m%s\x1b[0m', pairingCode); // Roșu
+      console.log('\n📲 Introdu codul în WhatsApp: Setări > Dispozitive > Conectează');
+    }
+
+    if (connection === 'open') {
+      console.log('\n✅ Conectat cu succes!');
+      await delay(2000);
+
+      // Trimite mesaj de test (schimbă ID-ul cu al tău)
+      const jid = '123456789@s.whatsapp.net'; // înlocuiește cu număr real
+      await sock.sendMessage(jid, { text: '👋 Salut, sunt online!' });
+      console.log('📨 Mesaj de test trimis.');
     }
   });
+};
 
-  // Persist credentials
-  sock.ev.on('creds.update', saveCreds);
+// Funcție principală
+async function startBot() {
+  const { version } = await fetchLatestBaileysVersion();
+  const { state, saveCreds } = await useMultiFileAuthState('./auth');
 
-  // Message handler
-  sock.ev.on('messages.upsert', async ({ messages }) => {
-    const msg = messages[0];
-    if (msg.key.fromMe) return;
-    console.log('📩 Received:', msg.message);
-
-    // Echo reply
-    await sock.sendMessage(msg.key.remoteJid, { text: `You said: ${msg.message.conversation}` });
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: false, // pairing code, nu QR
+    browser: ['Boruto', 'Termux', '1.0.0'],
   });
-})();
+
+  sock.ev.on('creds.update', saveCreds);
+  waitForPairing(sock);
+}
+
+startBot();
+
+    
+     
+  
+
 ```
 
 ---
