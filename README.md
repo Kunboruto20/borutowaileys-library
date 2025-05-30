@@ -34,7 +34,12 @@ npm install @borutowaileys/library
 ## 🏁 Quick Start
 
 ```javascript
+
 // index.cjs
+// This is a simple WhatsApp bot using the @borutowaileys/library.
+// It connects to WhatsApp Web using a QR code, asks for a phone number, and sends a test message.
+// You can extend this script as much as you like — see comments below!
+
 const {
   makeWASocket,
   useMultiFileAuthState,
@@ -42,41 +47,69 @@ const {
   fetchLatestBaileysVersion,
   delay
 } = require('@borutowaileys/library');
-const readline = require('readline');
 
-// Funcție pentru a afișa pairing code
+const readline = require('readline');
+const qrcode = require('qrcode-terminal');
+
+// 🔲 Show the QR code in the terminal so the user can scan it with WhatsApp
+const displayQRCode = (qr) => {
+  console.log('\n📷 Scan the QR code below using WhatsApp (Settings > Linked Devices > Link a device):\n');
+  qrcode.generate(qr, { small: true });
+};
+
+// 📞 Ask user to enter a phone number to send a message to
+const askPhoneNumber = () => {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    rl.question('\n📞 Enter a phone number to send a message (e.g. 123456789): ', (input) => {
+      rl.close();
+      resolve(input.trim());
+    });
+  });
+};
+
+// 🔄 Handle connection events and pairing
 const waitForPairing = (sock) => {
-  sock.ev.on('connection.update', async ({ connection, qr, pairingCode, lastDisconnect }) => {
+  sock.ev.on('connection.update', async ({ connection, qr, lastDisconnect }) => {
     if (connection === 'close') {
       const reason = lastDisconnect?.error?.output?.statusCode;
       if (reason === DisconnectReason.loggedOut) {
-        console.error('⚠️ Deconectat! Reautentificare necesară.');
+        console.error('⚠️ You have been logged out. Please re-authenticate.');
         process.exit();
       } else {
-        console.log('🔁 Reconectare...');
-        startBot(); // Recursiv
+        console.log('🔁 Trying to reconnect...');
+        startBot(); // Restart connection
       }
     }
 
-    if (pairingCode) {
-      console.log('\n🔗 Pairing Code:\n');
-      console.log('\x1b[31m%s\x1b[0m', pairingCode); // Roșu
-      console.log('\n📲 Introdu codul în WhatsApp: Setări > Dispozitive > Conectează');
+    if (qr) {
+      displayQRCode(qr); // Show QR code
     }
 
     if (connection === 'open') {
-      console.log('\n✅ Conectat cu succes!');
+      console.log('\n✅ Successfully connected to WhatsApp!');
       await delay(2000);
 
-      // Trimite mesaj de test (schimbă ID-ul cu al tău)
-      const jid = '123456789@s.whatsapp.net'; // înlocuiește cu număr real
-      await sock.sendMessage(jid, { text: '👋 Salut, sunt online!' });
-      console.log('📨 Mesaj de test trimis.');
+      // 📥 Ask for phone number and send message
+      const phone = await askPhoneNumber();
+      const jid = `${phone}@s.whatsapp.net`;
+
+      await sock.sendMessage(jid, { text: '👋 Hello! This is a message from your Boruto bot.' });
+      console.log(`📨 Message sent to ${phone}`);
+
+      // 💡 You can extend this to send images, audio, or messages from files!
+      // Example ideas:
+      // - Read from a .txt file and send multiple messages
+      // - Use a loop to send messages every X seconds
+      // - Send to a group instead of a single contact
     }
   });
 };
 
-// Funcție principală
+// 🚀 Start the WhatsApp bot
 async function startBot() {
   const { version } = await fetchLatestBaileysVersion();
   const { state, saveCreds } = await useMultiFileAuthState('./auth');
@@ -84,7 +117,7 @@ async function startBot() {
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: false, // pairing code, nu QR
+    printQRInTerminal: false, // QR is printed manually using qrcode-terminal
     browser: ['Boruto', 'Termux', '1.0.0'],
   });
 
@@ -92,8 +125,8 @@ async function startBot() {
   waitForPairing(sock);
 }
 
+// 🟢 Start everything
 startBot();
-
     
      
   
