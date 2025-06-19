@@ -1,8 +1,12 @@
 @borutowaileys/library
 
-\## What's New
-
-\- \*\*May 2025:\*\* Pairing code issues fixed with full support for the latest WhatsApp Web protocol. UPDATED The last protocol used by whatsapp to ensure the best compatibility Have Fun
+a WebSockets-based TypeScript library for interacting with the WhatsApp Web API.
+@borutowaileys/library 
+It offers 2 methods of connecting to whatsapp web through your script, QR code authentication, and if you don't have a camera available, you can use the pairing code method, you will receive an association code consisting of 8 digits ex UOQWERTQ, which you enter into whatsapp at the linked device to connect, this is not baileys,  It may seem similar to Baileys, but besides that, the @borutowaileys/Library is designed specifically to have more power when it comes to WhatsApp bots,Automations, etc.  
+IN YOUR CODE you will use :
+// Import the complete package and destructure what you need
+import pkg from '@borutowaileys/library';
+const { makeWASocket, useMultiFileAuthState, 
 
 **GitHub Repository:** [https://github.com/gyovannyvpn123/borutowaileys-library.git](https://github.com/gyovannyvpn123/borutowaileys-library.git)
 
